@@ -18,30 +18,116 @@
 
     body {
       overflow: hidden;
+      background: white;
     }
 
     .font-playfair { font-family: 'Playfair Display', serif; }
     .font-dancing { font-family: 'Dancing Script', cursive; }
     .font-lora { font-family: 'Lora', serif; }
 
-    .password-overlay {
+    .password-popup {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #fef3f3 0%, #fff5f5 50%, #fef3f3 100%);
-      z-index: 99999;
+      bottom: 100px;
+      right: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(220, 38, 38, 0.3);
+      padding: 20px;
+      z-index: 1001;
       display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
+      min-width: 280px;
+      animation: slideUp 0.3s ease;
     }
 
-    .password-overlay.show {
+    .password-popup.show {
+      display: block;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .password-popup-label {
+      font-family: 'Lora', serif;
+      color: #dc2626;
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .password-popup-input {
+      background: #fef3f3;
+      border: 2px solid #fecaca;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 16px;
+      letter-spacing: 6px;
+      text-align: center;
+      outline: none;
+      font-family: 'Playfair Display', serif;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .password-popup-input:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.2);
+    }
+
+    .password-popup-buttons {
       display: flex;
+      gap: 8px;
+    }
+
+    .password-popup-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .password-popup-btn.confirm {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+    }
+
+    .password-popup-btn.confirm:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .password-popup-btn.cancel {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .password-popup-btn.cancel:hover {
+      background: #fecaca;
+    }
+
+    .popup-error {
+      color: #dc2626;
+      font-family: 'Lora', serif;
+      font-size: 11px;
+      margin-top: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      text-align: center;
+    }
+
+    .popup-error.show {
+      opacity: 1;
     }
 
     .flipbook-container {
@@ -94,11 +180,6 @@
 
     .page-inner {
       background: linear-gradient(135deg, #fffbf5 0%, #fef7ed 50%, #fff5eb 100%);
-    }
-
-    .heart-decoration {
-      position: absolute;
-      opacity: 0.15;
     }
 
     .photo-frame {
@@ -210,48 +291,22 @@
       50% { transform: translateY(-10px) rotate(5deg); }
     }
 
-    @keyframes pulse-soft {
-      0%, 100% { opacity: 0.15; }
-      50% { opacity: 0.25; }
-    }
-
     .floating-heart {
       animation: float 4s ease-in-out infinite;
-    }
-
-    .pulse-heart {
-      animation: pulse-soft 3s ease-in-out infinite;
     }
 
     .file-input {
       display: none;
     }
 
-    .password-input {
-      background: white;
-      border: 2px solid #fecaca;
-      border-radius: 12px;
-      padding: 15px 20px;
-      font-size: 18px;
-      letter-spacing: 8px;
-      text-align: center;
-      outline: none;
-      font-family: 'Playfair Display', serif;
-    }
-
-    .password-input:focus {
-      border-color: #dc2626;
-      box-shadow: 0 0 20px rgba(220, 38, 38, 0.2);
-    }
-
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-10px); }
-      75% { transform: translateX(10px); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
     }
 
     .shake {
-      animation: shake 0.5s ease;
+      animation: shake 0.3s ease;
     }
 
     .toast {
@@ -300,50 +355,30 @@
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body class="h-full w-full m-0 p-0">
-  <div id="mainApp" class="h-full w-full bg-gradient-to-br from-red-50 via-orange-50 to-red-50 flex flex-col items-center justify-center p-4 overflow-auto"><!-- Background Decorations -->
-   <div class="fixed inset-0 pointer-events-none overflow-hidden">
-    <svg class="heart-decoration pulse-heart" style="top: 10%; left: 5%;" width="40" height="40" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-    <svg class="heart-decoration pulse-heart" style="top: 70%; left: 8%; animation-delay: 1s;" width="25" height="25" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-    <svg class="heart-decoration pulse-heart" style="top: 20%; right: 10%; animation-delay: 2s;" width="30" height="30" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-    <svg class="heart-decoration pulse-heart" style="bottom: 15%; right: 5%; animation-delay: 0.5s;" width="35" height="35" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-   </div><!-- Flipbook -->
+  <div id="mainApp" class="h-full w-full bg-white flex flex-col items-center justify-center p-4 overflow-auto"><!-- Flipbook -->
    <div class="flipbook-container relative z-10">
     <div class="flipbook" id="flipbook"></div>
    </div><!-- Mini Navigation -->
    <div class="flex items-center gap-2 mt-6 relative z-10"><button id="prevBtn" class="mini-nav-btn" disabled>←</button>
     <div class="page-indicator" id="pageIndicator"></div><button id="nextBtn" class="mini-nav-btn">→</button>
+   </div><!-- Password Popup -->
+   <div id="passwordPopup" class="password-popup"><label class="password-popup-label">Masukkan Password:</label> <input type="password" id="popupPasswordInput" class="password-popup-input" placeholder="••••••" maxlength="6">
+    <div class="password-popup-buttons"><button id="popupConfirmBtn" class="password-popup-btn confirm">Login</button> <button id="popupCancelBtn" class="password-popup-btn cancel">Batal</button>
+    </div>
+    <div id="popupError" class="popup-error">
+     Password salah! 💔
+    </div>
    </div><!-- Edit Toggle Button --> <button id="editToggle" class="edit-toggle">✏️</button> <!-- Edit Panel -->
    <div id="editPanel" class="edit-panel">
     <div class="p-6">
      <div class="flex items-center justify-between mb-6">
       <h2 class="font-playfair text-2xl text-red-600">Edit Flipbook</h2><button id="closePanel" class="text-red-400 hover:text-red-600 text-2xl">×</button>
-     </div><!-- Password Section -->
-     <div class="bg-red-50 rounded-lg p-4 mb-6 border border-red-100">
-      <p class="font-lora text-red-600 text-sm mb-3">🔐 Edit terenkripsi dengan password</p><button id="showPasswordBtn" class="w-full nav-btn text-sm"> 🔓 Login untuk Edit </button>
-      <p id="loginStatus" class="font-lora text-red-400 text-xs text-center mt-2 hidden">✓ Sudah login!</p>
-     </div><!-- Add Page Button --> <button id="addPageBtn" class="w-full nav-btn mb-6 flex items-center justify-center gap-2" disabled> <span>+</span> Tambah Halaman </button> <!-- Page Editor -->
+     </div><!-- Add Page Button --> <button id="addPageBtn" class="w-full nav-btn mb-6 flex items-center justify-center gap-2"> <span>+</span> Tambah Halaman </button> <!-- Page Editor -->
      <div id="pageEditors" class="space-y-6"></div><!-- Save Indicator -->
      <div class="mt-8 pt-6 border-t border-red-100">
       <p class="font-lora text-red-400 text-sm text-center italic">✨ Perubahan tersimpan otomatis ✨</p>
      </div>
     </div>
-   </div>
-  </div><!-- Password Modal -->
-  <div id="passwordOverlay" class="password-overlay">
-   <div class="relative z-10 text-center px-6 w-full max-w-md">
-    <div class="mb-6">
-     <svg class="floating-heart mx-auto" width="60" height="60" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-     </svg>
-    </div>
-    <h1 class="font-dancing text-5xl text-red-600 mb-3">Akses Edit</h1>
-    <p class="font-lora text-red-400 mb-8 text-lg">Masukkan password untuk mengedit</p>
-    <div class="mb-6 w-full"><input type="password" id="passwordInput" class="password-input w-full" placeholder="••••••" maxlength="6">
-    </div><button id="unlockBtn" class="nav-btn px-10 py-4 text-lg"> 🔓 Buka Edit </button>
-    <p id="errorMsg" class="font-lora text-red-500 mt-4 opacity-0 transition-opacity">Password salah, coba lagi ya 💔</p><button id="cancelPasswordBtn" class="mt-6 font-lora text-red-300 hover:text-red-600 transition-colors"> Batal </button>
    </div>
   </div><!-- Toast Notification -->
   <div id="toast" class="toast">
@@ -363,53 +398,47 @@
     let isPasswordUnlocked = false;
     const CORRECT_PASSWORD = '230126';
 
-    const passwordOverlay = document.getElementById('passwordOverlay');
-    const passwordInput = document.getElementById('passwordInput');
-    const unlockBtn = document.getElementById('unlockBtn');
-    const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
-    const errorMsg = document.getElementById('errorMsg');
-    const showPasswordBtn = document.getElementById('showPasswordBtn');
-    const loginStatus = document.getElementById('loginStatus');
+    const passwordPopup = document.getElementById('passwordPopup');
+    const popupPasswordInput = document.getElementById('popupPasswordInput');
+    const popupConfirmBtn = document.getElementById('popupConfirmBtn');
+    const popupCancelBtn = document.getElementById('popupCancelBtn');
+    const popupError = document.getElementById('popupError');
 
-    function openPasswordModal() {
-      passwordOverlay.classList.add('show');
-      passwordInput.value = '';
-      errorMsg.style.opacity = '0';
-      passwordInput.focus();
+    function showPasswordPopup() {
+      passwordPopup.classList.add('show');
+      popupPasswordInput.value = '';
+      popupError.classList.remove('show');
+      popupPasswordInput.focus();
     }
 
-    function closePasswordModal() {
-      passwordOverlay.classList.remove('show');
-      passwordInput.value = '';
-      errorMsg.style.opacity = '0';
+    function hidePasswordPopup() {
+      passwordPopup.classList.remove('show');
+      popupPasswordInput.value = '';
+      popupError.classList.remove('show');
     }
 
     function checkPassword() {
-      const entered = passwordInput.value;
+      const entered = popupPasswordInput.value;
       if (entered === CORRECT_PASSWORD) {
         isPasswordUnlocked = true;
-        closePasswordModal();
-        updateEditPanelState();
-        showToast('Password benar! Edit panel dibuka 🔓');
+        hidePasswordPopup();
+        openEditPanel();
+        showToast('Password benar! 🔓');
       } else {
-        errorMsg.style.opacity = '1';
-        passwordInput.classList.add('shake');
+        popupError.classList.add('show');
+        popupPasswordInput.classList.add('shake');
         setTimeout(() => {
-          passwordInput.classList.remove('shake');
-        }, 500);
-        setTimeout(() => {
-          errorMsg.style.opacity = '0';
-        }, 3000);
+          popupPasswordInput.classList.remove('shake');
+          popupError.classList.remove('show');
+        }, 1000);
       }
     }
 
-    unlockBtn.addEventListener('click', checkPassword);
-    cancelPasswordBtn.addEventListener('click', closePasswordModal);
-    passwordInput.addEventListener('keypress', (e) => {
+    popupConfirmBtn.addEventListener('click', checkPassword);
+    popupCancelBtn.addEventListener('click', hidePasswordPopup);
+    popupPasswordInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') checkPassword();
     });
-
-    showPasswordBtn.addEventListener('click', openPasswordModal);
 
     function renderFlipbook() {
       const flipbook = document.getElementById('flipbook');
@@ -549,30 +578,30 @@
         editor.innerHTML = `
           <div class="flex items-center justify-between mb-3">
             <span class="font-playfair text-red-600 font-semibold">Halaman ${index + 1}</span>
-            ${pagesData.length > 2 ? `<button class="text-red-400 hover:text-red-600 text-sm" onclick="deletePage(${page.id})" ${!isPasswordUnlocked ? 'disabled' : ''}>🗑️ Hapus</button>` : ''}
+            ${pagesData.length > 2 ? `<button class="text-red-400 hover:text-red-600 text-sm" onclick="deletePage(${page.id})">🗑️ Hapus</button>` : ''}
           </div>
           
           <div class="space-y-3">
             <div>
               <label class="font-lora text-red-500 text-xs mb-1 block">Judul</label>
-              <input type="text" value="${page.title}" onchange="updatePageData(${page.id}, 'title', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700" ${!isPasswordUnlocked ? 'disabled' : ''}>
+              <input type="text" value="${page.title}" onchange="updatePageData(${page.id}, 'title', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700">
             </div>
             
             ${page.type !== 'cover' ? `
               <div>
                 <label class="font-lora text-red-500 text-xs mb-1 block">Teks / Cerita</label>
-                <textarea onchange="updatePageData(${page.id}, 'text', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700 resize-none" rows="3" ${!isPasswordUnlocked ? 'disabled' : ''}>${page.text || ''}</textarea>
+                <textarea onchange="updatePageData(${page.id}, 'text', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700 resize-none" rows="3">${page.text || ''}</textarea>
               </div>
             ` : `
               <div>
                 <label class="font-lora text-red-500 text-xs mb-1 block">Subtitle</label>
-                <input type="text" value="${page.subtitle || ''}" onchange="updatePageData(${page.id}, 'subtitle', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700" ${!isPasswordUnlocked ? 'disabled' : ''}>
+                <input type="text" value="${page.subtitle || ''}" onchange="updatePageData(${page.id}, 'subtitle', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700">
               </div>
             `}
             
             <div>
               <label class="font-lora text-red-500 text-xs mb-1 block">Foto</label>
-              <button onclick="selectPhoto(${page.id})" class="w-full px-3 py-2 rounded-lg border border-dashed border-red-200 text-red-400 font-lora text-sm" ${!isPasswordUnlocked ? 'disabled' : ''}>${page.photo ? '📷 Ganti Foto' : '📷 Upload Foto'}</button>
+              <button onclick="selectPhoto(${page.id})" class="w-full px-3 py-2 rounded-lg border border-dashed border-red-200 text-red-400 font-lora text-sm">${page.photo ? '📷 Ganti Foto' : '📷 Upload Foto'}</button>
             </div>
           </div>
         `;
@@ -582,7 +611,6 @@
     }
 
     function updatePageData(pageId, field, value) {
-      if (!isPasswordUnlocked) return;
       const page = pagesData.find(p => p.id === pageId);
       if (page) {
         page[field] = value;
@@ -592,13 +620,11 @@
     }
 
     function selectPhoto(pageId) {
-      if (!isPasswordUnlocked) return;
       currentPhotoPageId = pageId;
       document.getElementById('fileInput').click();
     }
 
     function handleFileSelect(e) {
-      if (!isPasswordUnlocked) return;
       const file = e.target.files[0];
       if (file && currentPhotoPageId) {
         const reader = new FileReader();
@@ -616,7 +642,6 @@
     }
 
     function addPage() {
-      if (!isPasswordUnlocked) return;
       const newId = Math.max(...pagesData.map(p => p.id)) + 1;
       pagesData.splice(pagesData.length - 1, 0, { id: newId, type: 'content', title: 'Halaman Baru', text: 'Tulis cerita di sini...', photo: null });
       renderFlipbook();
@@ -625,7 +650,7 @@
     }
 
     function deletePage(pageId) {
-      if (!isPasswordUnlocked || pagesData.length <= 2) return;
+      if (pagesData.length <= 2) return;
       const index = pagesData.findIndex(p => p.id === pageId);
       if (index > -1) {
         pagesData.splice(index, 1);
@@ -637,6 +662,17 @@
       }
     }
 
+    function openEditPanel() {
+      isEditPanelOpen = true;
+      document.getElementById('editPanel').classList.add('open');
+    }
+
+    function closeEditPanel() {
+      isEditPanelOpen = false;
+      isPasswordUnlocked = false;
+      document.getElementById('editPanel').classList.remove('open');
+    }
+
     function showToast(message = 'Perubahan tersimpan! 💕') {
       const toast = document.getElementById('toast');
       toast.textContent = message;
@@ -644,30 +680,10 @@
       setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    function updateEditPanelState() {
-      const addPageBtn = document.getElementById('addPageBtn');
-      const pageEditors = document.getElementById('pageEditors');
-      
-      if (isPasswordUnlocked) {
-        addPageBtn.disabled = false;
-        pageEditors.style.opacity = '1';
-        pageEditors.style.pointerEvents = 'auto';
-        showPasswordBtn.style.display = 'none';
-        loginStatus.classList.remove('hidden');
-      } else {
-        addPageBtn.disabled = true;
-        pageEditors.style.opacity = '0.5';
-        pageEditors.style.pointerEvents = 'none';
-        showPasswordBtn.style.display = 'block';
-        loginStatus.classList.add('hidden');
-      }
-    }
-
     // Initialize
     renderFlipbook();
     renderPageEditors();
     updateNavigation();
-    updateEditPanelState();
 
     document.getElementById('prevBtn').onclick = () => goToPage(currentPage - 1);
     document.getElementById('nextBtn').onclick = () => goToPage(currentPage + 1);
@@ -682,17 +698,16 @@
     });
 
     document.getElementById('editToggle').onclick = () => {
-      isEditPanelOpen = !isEditPanelOpen;
-      document.getElementById('editPanel').classList.toggle('open', isEditPanelOpen);
+      if (!isPasswordUnlocked) {
+        showPasswordPopup();
+      } else {
+        openEditPanel();
+      }
     };
 
-    document.getElementById('closePanel').onclick = () => {
-      isEditPanelOpen = false;
-      document.getElementById('editPanel').classList.remove('open');
-    };
-
+    document.getElementById('closePanel').onclick = closeEditPanel;
     document.getElementById('addPageBtn').onclick = addPage;
     document.getElementById('fileInput').onchange = handleFileSelect;
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ccb4e5453ca7550',t:'MTc3MDg5MTEyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ccb671bf1daf4ec',t:'MTc3MDg5MjE0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
