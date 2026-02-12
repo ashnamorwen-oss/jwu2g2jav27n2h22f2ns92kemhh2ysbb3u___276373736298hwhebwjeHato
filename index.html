@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valentine Flipbook</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Dancing+Script:wght@400;500;600;700&amp;family=Lora:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    .font-playfair { font-family: 'Playfair Display', serif; }
+    .font-dancing { font-family: 'Dancing Script', cursive; }
+    .font-lora { font-family: 'Lora', serif; }
+
+    .password-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #fef3f3 0%, #fff5f5 50%, #fef3f3 100%);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .password-overlay.show {
+      display: flex;
+    }
+
+    .flipbook-container {
+      perspective: 2000px;
+      width: 100%;
+      max-width: 800px;
+      height: 500px;
+    }
+
+    .flipbook {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+    }
+
+    .page {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      right: 0;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+      cursor: pointer;
+    }
+
+    .page.flipped {
+      transform: rotateY(-180deg);
+    }
+
+    .page-front, .page-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 0 8px 8px 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .page-back {
+      transform: rotateY(180deg);
+      border-radius: 8px 0 0 8px;
+    }
+
+    .page-cover {
+      background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+    }
+
+    .page-inner {
+      background: linear-gradient(135deg, #fffbf5 0%, #fef7ed 50%, #fff5eb 100%);
+    }
+
+    .heart-decoration {
+      position: absolute;
+      opacity: 0.15;
+    }
+
+    .photo-frame {
+      position: relative;
+      background: linear-gradient(135deg, #fef3f3 0%, #fff 100%);
+      border: 3px solid #dc2626;
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+    }
+
+    .photo-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #fef3f3 0%, #fee2e2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .photo-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .mini-nav-btn {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Playfair Display', serif;
+      font-size: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+    }
+
+    .mini-nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .edit-panel {
+      position: fixed;
+      right: -320px;
+      top: 0;
+      width: 320px;
+      height: 100%;
+      background: linear-gradient(180deg, #fffbf5 0%, #fef7ed 100%);
+      box-shadow: -4px 0 30px rgba(0,0,0,0.15);
+      transition: right 0.4s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .edit-panel.open {
+      right: 0;
+    }
+
+    .edit-toggle {
+      position: fixed;
+      right: 20px;
+      bottom: 30px;
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+
+    .edit-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    .page-indicator {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .page-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fecaca;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .page-dot.active {
+      background: #dc2626;
+      transform: scale(1.2);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(5deg); }
+    }
+
+    @keyframes pulse-soft {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.25; }
+    }
+
+    .floating-heart {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .pulse-heart {
+      animation: pulse-soft 3s ease-in-out infinite;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .password-input {
+      background: white;
+      border: 2px solid #fecaca;
+      border-radius: 12px;
+      padding: 15px 20px;
+      font-size: 18px;
+      letter-spacing: 8px;
+      text-align: center;
+      outline: none;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .password-input:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 20px rgba(220, 38, 38, 0.2);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .shake {
+      animation: shake 0.5s ease;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-family: 'Lora', serif;
+      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+      transition: transform 0.4s ease;
+      z-index: 10000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .nav-btn {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full m-0 p-0">
+  <div id="mainApp" class="h-full w-full bg-gradient-to-br from-red-50 via-orange-50 to-red-50 flex flex-col items-center justify-center p-4 overflow-auto"><!-- Background Decorations -->
+   <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <svg class="heart-decoration pulse-heart" style="top: 10%; left: 5%;" width="40" height="40" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+    <svg class="heart-decoration pulse-heart" style="top: 70%; left: 8%; animation-delay: 1s;" width="25" height="25" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+    <svg class="heart-decoration pulse-heart" style="top: 20%; right: 10%; animation-delay: 2s;" width="30" height="30" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+    <svg class="heart-decoration pulse-heart" style="bottom: 15%; right: 5%; animation-delay: 0.5s;" width="35" height="35" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+   </div><!-- Flipbook -->
+   <div class="flipbook-container relative z-10">
+    <div class="flipbook" id="flipbook"></div>
+   </div><!-- Mini Navigation -->
+   <div class="flex items-center gap-2 mt-6 relative z-10"><button id="prevBtn" class="mini-nav-btn" disabled>←</button>
+    <div class="page-indicator" id="pageIndicator"></div><button id="nextBtn" class="mini-nav-btn">→</button>
+   </div><!-- Edit Toggle Button --> <button id="editToggle" class="edit-toggle">✏️</button> <!-- Edit Panel -->
+   <div id="editPanel" class="edit-panel">
+    <div class="p-6">
+     <div class="flex items-center justify-between mb-6">
+      <h2 class="font-playfair text-2xl text-red-600">Edit Flipbook</h2><button id="closePanel" class="text-red-400 hover:text-red-600 text-2xl">×</button>
+     </div><!-- Password Section -->
+     <div class="bg-red-50 rounded-lg p-4 mb-6 border border-red-100">
+      <p class="font-lora text-red-600 text-sm mb-3">🔐 Edit terenkripsi dengan password</p><button id="showPasswordBtn" class="w-full nav-btn text-sm"> 🔓 Login untuk Edit </button>
+      <p id="loginStatus" class="font-lora text-red-400 text-xs text-center mt-2 hidden">✓ Sudah login!</p>
+     </div><!-- Add Page Button --> <button id="addPageBtn" class="w-full nav-btn mb-6 flex items-center justify-center gap-2" disabled> <span>+</span> Tambah Halaman </button> <!-- Page Editor -->
+     <div id="pageEditors" class="space-y-6"></div><!-- Save Indicator -->
+     <div class="mt-8 pt-6 border-t border-red-100">
+      <p class="font-lora text-red-400 text-sm text-center italic">✨ Perubahan tersimpan otomatis ✨</p>
+     </div>
+    </div>
+   </div>
+  </div><!-- Password Modal -->
+  <div id="passwordOverlay" class="password-overlay">
+   <div class="relative z-10 text-center px-6 w-full max-w-md">
+    <div class="mb-6">
+     <svg class="floating-heart mx-auto" width="60" height="60" viewbox="0 0 24 24" fill="#dc2626"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+     </svg>
+    </div>
+    <h1 class="font-dancing text-5xl text-red-600 mb-3">Akses Edit</h1>
+    <p class="font-lora text-red-400 mb-8 text-lg">Masukkan password untuk mengedit</p>
+    <div class="mb-6 w-full"><input type="password" id="passwordInput" class="password-input w-full" placeholder="••••••" maxlength="6">
+    </div><button id="unlockBtn" class="nav-btn px-10 py-4 text-lg"> 🔓 Buka Edit </button>
+    <p id="errorMsg" class="font-lora text-red-500 mt-4 opacity-0 transition-opacity">Password salah, coba lagi ya 💔</p><button id="cancelPasswordBtn" class="mt-6 font-lora text-red-300 hover:text-red-600 transition-colors"> Batal </button>
+   </div>
+  </div><!-- Toast Notification -->
+  <div id="toast" class="toast">
+   Perubahan tersimpan! 💕
+  </div><!-- File Input for Images --> <input type="file" id="fileInput" class="file-input" accept="image/*">
+  <script>
+    let pagesData = [
+      { id: 1, type: 'cover', title: 'For My Valentine', subtitle: '23 Januari 2026', photo: null },
+      { id: 2, type: 'content', title: 'Awal Kisah Kita', text: 'Tuliskan cerita indah kita di sini...', photo: null },
+      { id: 3, type: 'content', title: 'Momen Terindah', text: 'Setiap momen bersamamu adalah hadiah...', photo: null },
+      { id: 4, type: 'ending', title: 'I Love You', text: 'Selamanya dan selamanya...', photo: null }
+    ];
+
+    let currentPage = 0;
+    let currentPhotoPageId = null;
+    let isEditPanelOpen = false;
+    let isPasswordUnlocked = false;
+    const CORRECT_PASSWORD = '230126';
+
+    const passwordOverlay = document.getElementById('passwordOverlay');
+    const passwordInput = document.getElementById('passwordInput');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+    const errorMsg = document.getElementById('errorMsg');
+    const showPasswordBtn = document.getElementById('showPasswordBtn');
+    const loginStatus = document.getElementById('loginStatus');
+
+    function openPasswordModal() {
+      passwordOverlay.classList.add('show');
+      passwordInput.value = '';
+      errorMsg.style.opacity = '0';
+      passwordInput.focus();
+    }
+
+    function closePasswordModal() {
+      passwordOverlay.classList.remove('show');
+      passwordInput.value = '';
+      errorMsg.style.opacity = '0';
+    }
+
+    function checkPassword() {
+      const entered = passwordInput.value;
+      if (entered === CORRECT_PASSWORD) {
+        isPasswordUnlocked = true;
+        closePasswordModal();
+        updateEditPanelState();
+        showToast('Password benar! Edit panel dibuka 🔓');
+      } else {
+        errorMsg.style.opacity = '1';
+        passwordInput.classList.add('shake');
+        setTimeout(() => {
+          passwordInput.classList.remove('shake');
+        }, 500);
+        setTimeout(() => {
+          errorMsg.style.opacity = '0';
+        }, 3000);
+      }
+    }
+
+    unlockBtn.addEventListener('click', checkPassword);
+    cancelPasswordBtn.addEventListener('click', closePasswordModal);
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') checkPassword();
+    });
+
+    showPasswordBtn.addEventListener('click', openPasswordModal);
+
+    function renderFlipbook() {
+      const flipbook = document.getElementById('flipbook');
+      flipbook.innerHTML = '';
+
+      pagesData.forEach((page, index) => {
+        const pageEl = document.createElement('div');
+        pageEl.className = 'page';
+        pageEl.dataset.index = index;
+        pageEl.style.zIndex = pagesData.length - index;
+
+        if (index < currentPage) {
+          pageEl.classList.add('flipped');
+        }
+
+        const frontContent = createPageContent(page);
+        const backContent = createPageContent(pagesData[index + 1] || null);
+
+        pageEl.innerHTML = `
+          <div class="page-front ${page.type === 'cover' ? 'page-cover' : 'page-inner'}">
+            ${frontContent}
+          </div>
+          <div class="page-back page-inner">
+            ${backContent}
+          </div>
+        `;
+
+        flipbook.appendChild(pageEl);
+      });
+
+      updatePageIndicator();
+    }
+
+    function createPageContent(page) {
+      if (!page) {
+        return `<div class="h-full flex items-center justify-center"><p class="font-dancing text-3xl text-red-300">The End 💕</p></div>`;
+      }
+
+      const photoHtml = `
+        <div class="photo-frame w-32 h-32 md:w-40 md:h-40 mx-auto mb-4">
+          <div class="photo-placeholder h-full" data-page-id="${page.id}" onclick="selectPhoto(${page.id})">
+            ${page.photo 
+              ? `<img src="${page.photo}" alt="Photo" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\"text-center\"><svg class=\"w-8 h-8 mx-auto text-red-300 mb-2\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z\"/></svg><span class=\"text-red-400 text-xs font-lora\">Foto tidak tersedia</span></div>';"`
+              : `<div class="text-center"><svg class="w-8 h-8 mx-auto text-red-300 mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg><span class="text-red-400 text-xs font-lora">Klik untuk foto</span></div>`
+            }
+          </div>
+        </div>
+      `;
+
+      if (page.type === 'cover') {
+        return `
+          <div class="h-full flex flex-col items-center justify-center p-6 text-center text-white relative">
+            <div class="floating-heart mb-4">
+              <svg width="50" height="50" viewBox="0 0 24 24" fill="white">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+            <h2 class="font-dancing text-4xl md:text-5xl mb-4">${page.title}</h2>
+            <p class="font-lora text-lg opacity-90">${page.subtitle}</p>
+            <div class="absolute bottom-6 text-sm opacity-70 font-lora">Klik untuk membuka →</div>
+          </div>
+        `;
+      }
+
+      if (page.type === 'ending') {
+        return `
+          <div class="h-full flex flex-col items-center justify-center p-6 text-center relative">
+            ${photoHtml}
+            <h3 class="font-dancing text-4xl text-red-600 mb-4">${page.title}</h3>
+            <p class="font-lora text-red-700 text-lg leading-relaxed max-w-xs">${page.text}</p>
+            <div class="mt-6 flex gap-2">
+              <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="h-full flex flex-col p-6 relative">
+          <h3 class="font-dancing text-2xl md:text-3xl text-red-600 text-center mb-4">${page.title}</h3>
+          ${photoHtml}
+          <div class="flex-1 flex items-center">
+            <p class="font-lora text-red-700 text-sm md:text-base leading-relaxed text-center w-full">${page.text}</p>
+          </div>
+          <div class="text-center text-red-300 text-xs font-lora mt-2">✿ ✿ ✿</div>
+        </div>
+      `;
+    }
+
+    function updatePageIndicator() {
+      const indicator = document.getElementById('pageIndicator');
+      indicator.innerHTML = '';
+      
+      for (let i = 0; i <= pagesData.length; i++) {
+        const dot = document.createElement('div');
+        dot.className = `page-dot ${i === currentPage ? 'active' : ''}`;
+        dot.onclick = () => goToPage(i);
+        indicator.appendChild(dot);
+      }
+    }
+
+    function goToPage(pageIndex) {
+      if (pageIndex < 0 || pageIndex > pagesData.length) return;
+      
+      const pages = document.querySelectorAll('.page');
+      
+      if (pageIndex > currentPage) {
+        for (let i = currentPage; i < pageIndex; i++) {
+          if (pages[i]) pages[i].classList.add('flipped');
+        }
+      } else {
+        for (let i = currentPage - 1; i >= pageIndex; i--) {
+          if (pages[i]) pages[i].classList.remove('flipped');
+        }
+      }
+      
+      currentPage = pageIndex;
+      updateNavigation();
+      updatePageIndicator();
+    }
+
+    function updateNavigation() {
+      document.getElementById('prevBtn').disabled = currentPage === 0;
+      document.getElementById('nextBtn').disabled = currentPage >= pagesData.length;
+    }
+
+    function renderPageEditors() {
+      const container = document.getElementById('pageEditors');
+      container.innerHTML = '';
+
+      pagesData.forEach((page, index) => {
+        const editor = document.createElement('div');
+        editor.className = 'bg-white rounded-xl p-4 shadow-sm border border-red-100';
+        
+        editor.innerHTML = `
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-playfair text-red-600 font-semibold">Halaman ${index + 1}</span>
+            ${pagesData.length > 2 ? `<button class="text-red-400 hover:text-red-600 text-sm" onclick="deletePage(${page.id})" ${!isPasswordUnlocked ? 'disabled' : ''}>🗑️ Hapus</button>` : ''}
+          </div>
+          
+          <div class="space-y-3">
+            <div>
+              <label class="font-lora text-red-500 text-xs mb-1 block">Judul</label>
+              <input type="text" value="${page.title}" onchange="updatePageData(${page.id}, 'title', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700" ${!isPasswordUnlocked ? 'disabled' : ''}>
+            </div>
+            
+            ${page.type !== 'cover' ? `
+              <div>
+                <label class="font-lora text-red-500 text-xs mb-1 block">Teks / Cerita</label>
+                <textarea onchange="updatePageData(${page.id}, 'text', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700 resize-none" rows="3" ${!isPasswordUnlocked ? 'disabled' : ''}>${page.text || ''}</textarea>
+              </div>
+            ` : `
+              <div>
+                <label class="font-lora text-red-500 text-xs mb-1 block">Subtitle</label>
+                <input type="text" value="${page.subtitle || ''}" onchange="updatePageData(${page.id}, 'subtitle', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700" ${!isPasswordUnlocked ? 'disabled' : ''}>
+              </div>
+            `}
+            
+            <div>
+              <label class="font-lora text-red-500 text-xs mb-1 block">Foto</label>
+              <button onclick="selectPhoto(${page.id})" class="w-full px-3 py-2 rounded-lg border border-dashed border-red-200 text-red-400 font-lora text-sm" ${!isPasswordUnlocked ? 'disabled' : ''}>${page.photo ? '📷 Ganti Foto' : '📷 Upload Foto'}</button>
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(editor);
+      });
+    }
+
+    function updatePageData(pageId, field, value) {
+      if (!isPasswordUnlocked) return;
+      const page = pagesData.find(p => p.id === pageId);
+      if (page) {
+        page[field] = value;
+        renderFlipbook();
+        showToast();
+      }
+    }
+
+    function selectPhoto(pageId) {
+      if (!isPasswordUnlocked) return;
+      currentPhotoPageId = pageId;
+      document.getElementById('fileInput').click();
+    }
+
+    function handleFileSelect(e) {
+      if (!isPasswordUnlocked) return;
+      const file = e.target.files[0];
+      if (file && currentPhotoPageId) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const page = pagesData.find(p => p.id === currentPhotoPageId);
+          if (page) {
+            page.photo = event.target.result;
+            renderFlipbook();
+            renderPageEditors();
+            showToast();
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addPage() {
+      if (!isPasswordUnlocked) return;
+      const newId = Math.max(...pagesData.map(p => p.id)) + 1;
+      pagesData.splice(pagesData.length - 1, 0, { id: newId, type: 'content', title: 'Halaman Baru', text: 'Tulis cerita di sini...', photo: null });
+      renderFlipbook();
+      renderPageEditors();
+      showToast('Halaman baru ditambahkan! 💕');
+    }
+
+    function deletePage(pageId) {
+      if (!isPasswordUnlocked || pagesData.length <= 2) return;
+      const index = pagesData.findIndex(p => p.id === pageId);
+      if (index > -1) {
+        pagesData.splice(index, 1);
+        if (currentPage > pagesData.length) currentPage = pagesData.length;
+        renderFlipbook();
+        renderPageEditors();
+        updateNavigation();
+        showToast('Halaman dihapus 💔');
+      }
+    }
+
+    function showToast(message = 'Perubahan tersimpan! 💕') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function updateEditPanelState() {
+      const addPageBtn = document.getElementById('addPageBtn');
+      const pageEditors = document.getElementById('pageEditors');
+      
+      if (isPasswordUnlocked) {
+        addPageBtn.disabled = false;
+        pageEditors.style.opacity = '1';
+        pageEditors.style.pointerEvents = 'auto';
+        showPasswordBtn.style.display = 'none';
+        loginStatus.classList.remove('hidden');
+      } else {
+        addPageBtn.disabled = true;
+        pageEditors.style.opacity = '0.5';
+        pageEditors.style.pointerEvents = 'none';
+        showPasswordBtn.style.display = 'block';
+        loginStatus.classList.add('hidden');
+      }
+    }
+
+    // Initialize
+    renderFlipbook();
+    renderPageEditors();
+    updateNavigation();
+    updateEditPanelState();
+
+    document.getElementById('prevBtn').onclick = () => goToPage(currentPage - 1);
+    document.getElementById('nextBtn').onclick = () => goToPage(currentPage + 1);
+
+    document.getElementById('flipbook').addEventListener('click', (e) => {
+      const page = e.target.closest('.page');
+      if (page && !e.target.closest('.photo-placeholder')) {
+        const index = parseInt(page.dataset.index);
+        if (index === currentPage) goToPage(currentPage + 1);
+        else if (index === currentPage - 1) goToPage(currentPage - 1);
+      }
+    });
+
+    document.getElementById('editToggle').onclick = () => {
+      isEditPanelOpen = !isEditPanelOpen;
+      document.getElementById('editPanel').classList.toggle('open', isEditPanelOpen);
+    };
+
+    document.getElementById('closePanel').onclick = () => {
+      isEditPanelOpen = false;
+      document.getElementById('editPanel').classList.remove('open');
+    };
+
+    document.getElementById('addPageBtn').onclick = addPage;
+    document.getElementById('fileInput').onchange = handleFileSelect;
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ccb4e5453ca7550',t:'MTc3MDg5MTEyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
