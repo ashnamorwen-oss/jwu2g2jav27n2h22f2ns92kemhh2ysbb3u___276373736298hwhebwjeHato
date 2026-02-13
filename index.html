@@ -1,713 +1,864 @@
 <!doctype html>
 <html lang="id" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Valentine Flipbook</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Dancing+Script:wght@400;500;600;700&amp;family=Lora:wght@400;500;600&amp;display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; }
-    
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Valentine Flipbook</title>
 
-    body {
-      overflow: hidden;
-      background: white;
-    }
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="/_sdk/element_sdk.js"></script>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
 
-    .font-playfair { font-family: 'Playfair Display', serif; }
-    .font-dancing { font-family: 'Dancing Script', cursive; }
-    .font-lora { font-family: 'Lora', serif; }
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Dancing+Script:wght@400;500;600;700&amp;family=Lora:wght@400;500;600&amp;display=swap"
+      rel="stylesheet"
+    />
 
-    .password-popup {
-      position: fixed;
-      bottom: 100px;
-      right: 20px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(220, 38, 38, 0.3);
-      padding: 20px;
-      z-index: 1001;
-      display: none;
-      min-width: 280px;
-      animation: slideUp 0.3s ease;
-    }
+    <style>
+      * { box-sizing: border-box; }
 
-    .password-popup.show {
-      display: block;
-    }
+      html, body { height: 100%; margin: 0; padding: 0; }
+      body { overflow: hidden; background: white; }
 
-    @keyframes slideUp {
-      from {
+      .font-playfair { font-family: 'Playfair Display', serif; }
+      .font-dancing { font-family: 'Dancing Script', cursive; }
+      .font-lora { font-family: 'Lora', serif; }
+
+      .password-popup {
+        position: fixed;
+        bottom: 100px;
+        right: 20px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(220, 38, 38, 0.3);
+        padding: 20px;
+        z-index: 1001;
+        display: none;
+        min-width: 280px;
+        animation: slideUp 0.3s ease;
+      }
+
+      .password-popup.show { display: block; }
+
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .password-popup-label {
+        font-family: 'Lora', serif;
+        color: #dc2626;
+        font-size: 13px;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .password-popup-input {
+        background: #fef3f3;
+        border: 2px solid #fecaca;
+        border-radius: 8px;
+        padding: 10px 15px;
+        font-size: 16px;
+        letter-spacing: 6px;
+        text-align: center;
+        outline: none;
+        font-family: 'Playfair Display', serif;
+        width: 100%;
+        margin-bottom: 12px;
+      }
+
+      .password-popup-input:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 15px rgba(220, 38, 38, 0.2);
+      }
+
+      .password-popup-buttons { display: flex; gap: 8px; }
+
+      .password-popup-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: 'Playfair Display', serif;
+        font-size: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .password-popup-btn.confirm {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+      }
+
+      .password-popup-btn.confirm:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      }
+
+      .password-popup-btn.cancel {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      .password-popup-btn.cancel:hover { background: #fecaca; }
+
+      .popup-error {
+        color: #dc2626;
+        font-family: 'Lora', serif;
+        font-size: 11px;
+        margin-top: 8px;
         opacity: 0;
-        transform: translateY(20px);
+        transition: opacity 0.3s ease;
+        text-align: center;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+
+      .popup-error.show { opacity: 1; }
+
+      .flipbook-container {
+        perspective: 2000px;
+        width: 100%;
+        max-width: 800px;
+        height: 500px;
       }
-    }
 
-    .password-popup-label {
-      font-family: 'Lora', serif;
-      color: #dc2626;
-      font-size: 13px;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .password-popup-input {
-      background: #fef3f3;
-      border: 2px solid #fecaca;
-      border-radius: 8px;
-      padding: 10px 15px;
-      font-size: 16px;
-      letter-spacing: 6px;
-      text-align: center;
-      outline: none;
-      font-family: 'Playfair Display', serif;
-      width: 100%;
-      margin-bottom: 12px;
-    }
-
-    .password-popup-input:focus {
-      border-color: #dc2626;
-      box-shadow: 0 0 15px rgba(220, 38, 38, 0.2);
-    }
-
-    .password-popup-buttons {
-      display: flex;
-      gap: 8px;
-    }
-
-    .password-popup-btn {
-      flex: 1;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: 'Playfair Display', serif;
-      font-size: 12px;
-      transition: all 0.3s ease;
-    }
-
-    .password-popup-btn.confirm {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      color: white;
-    }
-
-    .password-popup-btn.confirm:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    }
-
-    .password-popup-btn.cancel {
-      background: #fee2e2;
-      color: #dc2626;
-    }
-
-    .password-popup-btn.cancel:hover {
-      background: #fecaca;
-    }
-
-    .popup-error {
-      color: #dc2626;
-      font-family: 'Lora', serif;
-      font-size: 11px;
-      margin-top: 8px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      text-align: center;
-    }
-
-    .popup-error.show {
-      opacity: 1;
-    }
-
-    .flipbook-container {
-      perspective: 2000px;
-      width: 100%;
-      max-width: 800px;
-      height: 500px;
-    }
-
-    .flipbook {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      transform-style: preserve-3d;
-    }
-
-    .page {
-      position: absolute;
-      width: 50%;
-      height: 100%;
-      right: 0;
-      transform-origin: left center;
-      transform-style: preserve-3d;
-      transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
-      cursor: pointer;
-    }
-
-    .page.flipped {
-      transform: rotateY(-180deg);
-    }
-
-    .page-front, .page-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      border-radius: 0 8px 8px 0;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-
-    .page-back {
-      transform: rotateY(180deg);
-      border-radius: 8px 0 0 8px;
-    }
-
-    .page-cover {
-      background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
-    }
-
-    .page-inner {
-      background: linear-gradient(135deg, #fffbf5 0%, #fef7ed 50%, #fff5eb 100%);
-    }
-
-    .photo-frame {
-      position: relative;
-      background: linear-gradient(135deg, #fef3f3 0%, #fff 100%);
-      border: 3px solid #dc2626;
-      border-radius: 8px;
-      padding: 8px;
-      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
-    }
-
-    .photo-placeholder {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #fef3f3 0%, #fee2e2 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .photo-placeholder img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-
-    .mini-nav-btn {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-family: 'Playfair Display', serif;
-      font-size: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
-    }
-
-    .mini-nav-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .edit-panel {
-      position: fixed;
-      right: -320px;
-      top: 0;
-      width: 320px;
-      height: 100%;
-      background: linear-gradient(180deg, #fffbf5 0%, #fef7ed 100%);
-      box-shadow: -4px 0 30px rgba(0,0,0,0.15);
-      transition: right 0.4s ease;
-      z-index: 1000;
-      overflow-y: auto;
-    }
-
-    .edit-panel.open {
-      right: 0;
-    }
-
-    .edit-toggle {
-      position: fixed;
-      right: 20px;
-      bottom: 30px;
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      color: white;
-      border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 20px;
-      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
-      transition: all 0.3s ease;
-      z-index: 999;
-    }
-
-    .edit-toggle:hover {
-      transform: scale(1.1);
-    }
-
-    .page-indicator {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .page-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #fecaca;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .page-dot.active {
-      background: #dc2626;
-      transform: scale(1.2);
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(5deg); }
-    }
-
-    .floating-heart {
-      animation: float 4s ease-in-out infinite;
-    }
-
-    .file-input {
-      display: none;
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-
-    .shake {
-      animation: shake 0.3s ease;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      color: white;
-      padding: 15px 30px;
-      border-radius: 30px;
-      font-family: 'Lora', serif;
-      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
-      transition: transform 0.4s ease;
-      z-index: 10000;
-    }
-
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .nav-btn {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-family: 'Playfair Display', serif;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-    }
-
-    .nav-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
-    }
-
-    .nav-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  </style>
-  <style>body { box-sizing: border-box; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
- </head>
- <body class="h-full w-full m-0 p-0">
-  <div id="mainApp" class="h-full w-full bg-white flex flex-col items-center justify-center p-4 overflow-auto"><!-- Flipbook -->
-   <div class="flipbook-container relative z-10">
-    <div class="flipbook" id="flipbook"></div>
-   </div><!-- Mini Navigation -->
-   <div class="flex items-center gap-2 mt-6 relative z-10"><button id="prevBtn" class="mini-nav-btn" disabled>←</button>
-    <div class="page-indicator" id="pageIndicator"></div><button id="nextBtn" class="mini-nav-btn">→</button>
-   </div><!-- Password Popup -->
-   <div id="passwordPopup" class="password-popup"><label class="password-popup-label">Masukkan Password:</label> <input type="password" id="popupPasswordInput" class="password-popup-input" placeholder="••••••" maxlength="6">
-    <div class="password-popup-buttons"><button id="popupConfirmBtn" class="password-popup-btn confirm">Login</button> <button id="popupCancelBtn" class="password-popup-btn cancel">Batal</button>
-    </div>
-    <div id="popupError" class="popup-error">
-     Password salah! 💔
-    </div>
-   </div><!-- Edit Toggle Button --> <button id="editToggle" class="edit-toggle">✏️</button> <!-- Edit Panel -->
-   <div id="editPanel" class="edit-panel">
-    <div class="p-6">
-     <div class="flex items-center justify-between mb-6">
-      <h2 class="font-playfair text-2xl text-red-600">Edit Flipbook</h2><button id="closePanel" class="text-red-400 hover:text-red-600 text-2xl">×</button>
-     </div><!-- Add Page Button --> <button id="addPageBtn" class="w-full nav-btn mb-6 flex items-center justify-center gap-2"> <span>+</span> Tambah Halaman </button> <!-- Page Editor -->
-     <div id="pageEditors" class="space-y-6"></div><!-- Save Indicator -->
-     <div class="mt-8 pt-6 border-t border-red-100">
-      <p class="font-lora text-red-400 text-sm text-center italic">✨ Perubahan tersimpan otomatis ✨</p>
-     </div>
-    </div>
-   </div>
-  </div><!-- Toast Notification -->
-  <div id="toast" class="toast">
-   Perubahan tersimpan! 💕
-  </div><!-- File Input for Images --> <input type="file" id="fileInput" class="file-input" accept="image/*">
-  <script>
-    let pagesData = [
-      { id: 1, type: 'cover', title: 'For My Valentine', subtitle: '23 Januari 2026', photo: null },
-      { id: 2, type: 'content', title: 'Awal Kisah Kita', text: 'Tuliskan cerita indah kita di sini...', photo: null },
-      { id: 3, type: 'content', title: 'Momen Terindah', text: 'Setiap momen bersamamu adalah hadiah...', photo: null },
-      { id: 4, type: 'ending', title: 'I Love You', text: 'Selamanya dan selamanya...', photo: null }
-    ];
-
-    let currentPage = 0;
-    let currentPhotoPageId = null;
-    let isEditPanelOpen = false;
-    let isPasswordUnlocked = false;
-    const CORRECT_PASSWORD = '230126';
-
-    const passwordPopup = document.getElementById('passwordPopup');
-    const popupPasswordInput = document.getElementById('popupPasswordInput');
-    const popupConfirmBtn = document.getElementById('popupConfirmBtn');
-    const popupCancelBtn = document.getElementById('popupCancelBtn');
-    const popupError = document.getElementById('popupError');
-
-    function showPasswordPopup() {
-      passwordPopup.classList.add('show');
-      popupPasswordInput.value = '';
-      popupError.classList.remove('show');
-      popupPasswordInput.focus();
-    }
-
-    function hidePasswordPopup() {
-      passwordPopup.classList.remove('show');
-      popupPasswordInput.value = '';
-      popupError.classList.remove('show');
-    }
-
-    function checkPassword() {
-      const entered = popupPasswordInput.value;
-      if (entered === CORRECT_PASSWORD) {
-        isPasswordUnlocked = true;
-        hidePasswordPopup();
-        openEditPanel();
-        showToast('Password benar! 🔓');
-      } else {
-        popupError.classList.add('show');
-        popupPasswordInput.classList.add('shake');
-        setTimeout(() => {
-          popupPasswordInput.classList.remove('shake');
-          popupError.classList.remove('show');
-        }, 1000);
+      .flipbook {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
       }
-    }
 
-    popupConfirmBtn.addEventListener('click', checkPassword);
-    popupCancelBtn.addEventListener('click', hidePasswordPopup);
-    popupPasswordInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') checkPassword();
-    });
+      .page {
+        position: absolute;
+        width: 50%;
+        height: 100%;
+        right: 0;
+        transform-origin: left center;
+        transform-style: preserve-3d;
+        transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        cursor: pointer;
+      }
 
-    function renderFlipbook() {
-      const flipbook = document.getElementById('flipbook');
-      flipbook.innerHTML = '';
+      .page.flipped { transform: rotateY(-180deg); }
 
-      pagesData.forEach((page, index) => {
-        const pageEl = document.createElement('div');
-        pageEl.className = 'page';
-        pageEl.dataset.index = index;
-        pageEl.style.zIndex = pagesData.length - index;
+      .page-front, .page-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
 
-        if (index < currentPage) {
-          pageEl.classList.add('flipped');
-        }
+      .page-back {
+        transform: rotateY(180deg);
+        border-radius: 8px 0 0 8px;
+      }
 
-        const frontContent = createPageContent(page);
-        const backContent = createPageContent(pagesData[index + 1] || null);
+      .page-cover {
+        background: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+      }
 
-        pageEl.innerHTML = `
-          <div class="page-front ${page.type === 'cover' ? 'page-cover' : 'page-inner'}">
-            ${frontContent}
+      .page-inner {
+        background: linear-gradient(135deg, #fffbf5 0%, #fef7ed 50%, #fff5eb 100%);
+      }
+
+      .photo-frame {
+        position: relative;
+        background: linear-gradient(135deg, #fef3f3 0%, #fff 100%);
+        border: 3px solid #dc2626;
+        border-radius: 8px;
+        padding: 8px;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15);
+      }
+
+      .photo-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #fef3f3 0%, #fee2e2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .photo-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+      }
+
+      .mini-nav-btn {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-family: 'Playfair Display', serif;
+        font-size: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+      }
+
+      .mini-nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .edit-panel {
+        position: fixed;
+        right: -320px;
+        top: 0;
+        width: 320px;
+        height: 100%;
+        background: linear-gradient(180deg, #fffbf5 0%, #fef7ed 100%);
+        box-shadow: -4px 0 30px rgba(0,0,0,0.15);
+        transition: right 0.4s ease;
+        z-index: 1000;
+        overflow-y: auto;
+      }
+
+      .edit-panel.open { right: 0; }
+
+      .edit-toggle {
+        position: fixed;
+        right: 20px;
+        bottom: 30px;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+        transition: all 0.3s ease;
+        z-index: 999;
+      }
+
+      .edit-toggle:hover { transform: scale(1.1); }
+
+      .page-indicator {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .page-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #fecaca;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .page-dot.active { background: #dc2626; transform: scale(1.2); }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(5deg); }
+      }
+
+      .floating-heart { animation: float 4s ease-in-out infinite; }
+      .file-input { display: none; }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+
+      .shake { animation: shake 0.3s ease; }
+
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-family: 'Lora', serif;
+        box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
+        transition: transform 0.4s ease;
+        z-index: 10000;
+      }
+
+      .toast.show { transform: translateX(-50%) translateY(0); }
+
+      .nav-btn {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-family: 'Playfair Display', serif;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+      }
+
+      .nav-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+      }
+
+      .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+  </head>
+
+  <body class="h-full w-full m-0 p-0">
+    <div id="mainApp" class="h-full w-full bg-white flex flex-col items-center justify-center p-4 overflow-auto">
+      <!-- Flipbook -->
+      <div class="flipbook-container relative z-10">
+        <div class="flipbook" id="flipbook"></div>
+      </div>
+
+      <!-- Mini Navigation -->
+      <div class="flex items-center gap-2 mt-6 relative z-10">
+        <button id="prevBtn" class="mini-nav-btn" disabled>←</button>
+        <div class="page-indicator" id="pageIndicator"></div>
+        <button id="nextBtn" class="mini-nav-btn">→</button>
+      </div>
+
+      <!-- Password Popup -->
+      <div id="passwordPopup" class="password-popup">
+        <label class="password-popup-label">Masukkan Password:</label>
+        <input
+          type="password"
+          id="popupPasswordInput"
+          class="password-popup-input"
+          placeholder="••••••"
+          maxlength="6"
+        />
+        <div class="password-popup-buttons">
+          <button id="popupConfirmBtn" class="password-popup-btn confirm">Login</button>
+          <button id="popupCancelBtn" class="password-popup-btn cancel">Batal</button>
+        </div>
+        <div id="popupError" class="popup-error">Password salah! 💔</div>
+      </div>
+
+      <!-- Edit Toggle Button -->
+      <button id="editToggle" class="edit-toggle">✏️</button>
+
+      <!-- Edit Panel -->
+      <div id="editPanel" class="edit-panel">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="font-playfair text-2xl text-red-600">Edit Flipbook</h2>
+            <button id="closePanel" class="text-red-400 hover:text-red-600 text-2xl">×</button>
           </div>
-          <div class="page-back page-inner">
-            ${backContent}
-          </div>
-        `;
 
-        flipbook.appendChild(pageEl);
-      });
+          <!-- Add Page Button -->
+          <button id="addPageBtn" class="w-full nav-btn mb-6 flex items-center justify-center gap-2">
+            <span>+</span> Tambah Halaman
+          </button>
 
-      updatePageIndicator();
-    }
+          <!-- Page Editor -->
+          <div id="pageEditors" class="space-y-6"></div>
 
-    function createPageContent(page) {
-      if (!page) {
-        return `<div class="h-full flex items-center justify-center"><p class="font-dancing text-3xl text-red-300">The End 💕</p></div>`;
-      }
-
-      const photoHtml = `
-        <div class="photo-frame w-32 h-32 md:w-40 md:h-40 mx-auto mb-4">
-          <div class="photo-placeholder h-full" data-page-id="${page.id}" onclick="selectPhoto(${page.id})">
-            ${page.photo 
-              ? `<img src="${page.photo}" alt="Photo" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\"text-center\"><svg class=\"w-8 h-8 mx-auto text-red-300 mb-2\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z\"/></svg><span class=\"text-red-400 text-xs font-lora\">Foto tidak tersedia</span></div>';"`
-              : `<div class="text-center"><svg class="w-8 h-8 mx-auto text-red-300 mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg><span class="text-red-400 text-xs font-lora">Klik untuk foto</span></div>`
-            }
+          <!-- Save Indicator -->
+          <div class="mt-8 pt-6 border-t border-red-100">
+            <p class="font-lora text-red-400 text-sm text-center italic">
+              ✨ Perubahan tersimpan otomatis ✨
+            </p>
           </div>
         </div>
-      `;
+      </div>
+    </div>
 
-      if (page.type === 'cover') {
-        return `
-          <div class="h-full flex flex-col items-center justify-center p-6 text-center text-white relative">
-            <div class="floating-heart mb-4">
-              <svg width="50" height="50" viewBox="0 0 24 24" fill="white">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </div>
-            <h2 class="font-dancing text-4xl md:text-5xl mb-4">${page.title}</h2>
-            <p class="font-lora text-lg opacity-90">${page.subtitle}</p>
-            <div class="absolute bottom-6 text-sm opacity-70 font-lora">Klik untuk membuka →</div>
-          </div>
-        `;
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Perubahan tersimpan! 💕</div>
+
+    <!-- File Input for Images -->
+    <input type="file" id="fileInput" class="file-input" accept="image/*" />
+
+    <script>
+      /***********************
+       * PERSISTENCE (GitHub Pages friendly)
+       * - Data disimpan di localStorage browser (jadi gak balik kosong pas reload).
+       * - Kalau kamu butuh benar2 "server-side" (kebawa ke device lain), harus pakai backend/DB.
+       ***********************/
+      const STORAGE_KEY = "valentine_flipbook_pages_v1";
+      const STORAGE_PAGE_KEY = "valentine_flipbook_currentPage_v1";
+
+      const DEFAULT_PAGES = [
+        { id: 1, type: "cover", title: "For My Valentine", subtitle: "23 Januari 2026", photo: null },
+        { id: 2, type: "content", title: "Awal Kisah Kita", text: "Tuliskan cerita indah kita di sini...", photo: null },
+        { id: 3, type: "content", title: "Momen Terindah", text: "Setiap momen bersamamu adalah hadiah...", photo: null },
+        { id: 4, type: "ending", title: "I Love You", text: "Selamanya dan selamanya...", photo: null }
+      ];
+
+      function safeParseJSON(str) {
+        try { return JSON.parse(str); } catch { return null; }
       }
 
-      if (page.type === 'ending') {
+      function isValidPagesData(data) {
+        if (!Array.isArray(data) || data.length < 2) return false;
+        return data.every(p =>
+          p && typeof p === "object" &&
+          typeof p.id === "number" &&
+          typeof p.type === "string" &&
+          typeof p.title === "string" &&
+          (p.type === "cover" ? (typeof (p.subtitle ?? "") === "string") : true) &&
+          (p.type === "cover" ? true : (typeof (p.text ?? "") === "string")) &&
+          (p.photo === null || typeof p.photo === "string")
+        );
+      }
+
+      let saveTimer = null;
+      function persistNow() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(pagesData));
+          localStorage.setItem(STORAGE_PAGE_KEY, String(currentPage));
+        } catch (e) {
+          // localStorage bisa penuh (terutama kalau foto base64 besar)
+          console.warn("Gagal menyimpan ke localStorage:", e);
+          showToast("Gagal menyimpan (storage penuh) 💔");
+        }
+      }
+
+      function persistSoon() {
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          persistNow();
+        }, 250);
+      }
+
+      function loadPersisted() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? safeParseJSON(raw) : null;
+        if (isValidPagesData(parsed)) return parsed;
+        return null;
+      }
+
+      function loadPersistedPage() {
+        const raw = localStorage.getItem(STORAGE_PAGE_KEY);
+        const n = raw ? Number(raw) : 0;
+        return Number.isFinite(n) ? n : 0;
+      }
+
+      /***********************
+       * APP STATE
+       ***********************/
+      let pagesData = loadPersisted() || DEFAULT_PAGES.map(p => ({ ...p }));
+      let currentPage = Math.min(Math.max(loadPersistedPage(), 0), pagesData.length);
+
+      let currentPhotoPageId = null;
+      let isEditPanelOpen = false;
+      let isPasswordUnlocked = false;
+      const CORRECT_PASSWORD = "230126";
+
+      const passwordPopup = document.getElementById("passwordPopup");
+      const popupPasswordInput = document.getElementById("popupPasswordInput");
+      const popupConfirmBtn = document.getElementById("popupConfirmBtn");
+      const popupCancelBtn = document.getElementById("popupCancelBtn");
+      const popupError = document.getElementById("popupError");
+
+      function showPasswordPopup() {
+        passwordPopup.classList.add("show");
+        popupPasswordInput.value = "";
+        popupError.classList.remove("show");
+        popupPasswordInput.focus();
+      }
+
+      function hidePasswordPopup() {
+        passwordPopup.classList.remove("show");
+        popupPasswordInput.value = "";
+        popupError.classList.remove("show");
+      }
+
+      function checkPassword() {
+        const entered = popupPasswordInput.value;
+        if (entered === CORRECT_PASSWORD) {
+          isPasswordUnlocked = true;
+          hidePasswordPopup();
+          openEditPanel();
+          showToast("Password benar! 🔓");
+        } else {
+          popupError.classList.add("show");
+          popupPasswordInput.classList.add("shake");
+          setTimeout(() => {
+            popupPasswordInput.classList.remove("shake");
+            popupError.classList.remove("show");
+          }, 1000);
+        }
+      }
+
+      popupConfirmBtn.addEventListener("click", checkPassword);
+      popupCancelBtn.addEventListener("click", hidePasswordPopup);
+      popupPasswordInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") checkPassword();
+      });
+
+      function renderFlipbook() {
+        const flipbook = document.getElementById("flipbook");
+        flipbook.innerHTML = "";
+
+        pagesData.forEach((page, index) => {
+          const pageEl = document.createElement("div");
+          pageEl.className = "page";
+          pageEl.dataset.index = index;
+          pageEl.style.zIndex = pagesData.length - index;
+
+          if (index < currentPage) pageEl.classList.add("flipped");
+
+          const frontContent = createPageContent(page);
+          const backContent = createPageContent(pagesData[index + 1] || null);
+
+          pageEl.innerHTML = `
+            <div class="page-front ${page.type === "cover" ? "page-cover" : "page-inner"}">
+              ${frontContent}
+            </div>
+            <div class="page-back page-inner">
+              ${backContent}
+            </div>
+          `;
+
+          flipbook.appendChild(pageEl);
+        });
+
+        updatePageIndicator();
+      }
+
+      function createPageContent(page) {
+        if (!page) {
+          return `<div class="h-full flex items-center justify-center"><p class="font-dancing text-3xl text-red-300">The End 💕</p></div>`;
+        }
+
+        const photoHtml = `
+          <div class="photo-frame w-32 h-32 md:w-40 md:h-40 mx-auto mb-4">
+            <div class="photo-placeholder h-full" data-page-id="${page.id}" onclick="selectPhoto(${page.id})">
+              ${
+                page.photo
+                  ? `<img src="${page.photo}" alt="Photo" loading="lazy"
+                      onerror="this.parentElement.innerHTML='<div class=&quot;text-center&quot;><svg class=&quot;w-8 h-8 mx-auto text-red-300 mb-2&quot; fill=&quot;currentColor&quot; viewBox=&quot;0 0 24 24&quot;><path d=&quot;M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z&quot;/></svg><span class=&quot;text-red-400 text-xs font-lora&quot;>Foto tidak tersedia</span></div>';"
+                    />`
+                  : `<div class="text-center">
+                      <svg class="w-8 h-8 mx-auto text-red-300 mb-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                      </svg>
+                      <span class="text-red-400 text-xs font-lora">Klik untuk foto</span>
+                    </div>`
+              }
+            </div>
+          </div>
+        `;
+
+        if (page.type === "cover") {
+          return `
+            <div class="h-full flex flex-col items-center justify-center p-6 text-center text-white relative">
+              <div class="floating-heart mb-4">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </div>
+              <h2 class="font-dancing text-4xl md:text-5xl mb-4">${page.title}</h2>
+              <p class="font-lora text-lg opacity-90">${page.subtitle ?? ""}</p>
+              <div class="absolute bottom-6 text-sm opacity-70 font-lora">Klik untuk membuka →</div>
+            </div>
+          `;
+        }
+
+        if (page.type === "ending") {
+          return `
+            <div class="h-full flex flex-col items-center justify-center p-6 text-center relative">
+              ${photoHtml}
+              <h3 class="font-dancing text-4xl text-red-600 mb-4">${page.title}</h3>
+              <p class="font-lora text-red-700 text-lg leading-relaxed max-w-xs">${page.text ?? ""}</p>
+              <div class="mt-6 flex gap-2">
+                <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+            </div>
+          `;
+        }
+
         return `
-          <div class="h-full flex flex-col items-center justify-center p-6 text-center relative">
+          <div class="h-full flex flex-col p-6 relative">
+            <h3 class="font-dancing text-2xl md:text-3xl text-red-600 text-center mb-4">${page.title}</h3>
             ${photoHtml}
-            <h3 class="font-dancing text-4xl text-red-600 mb-4">${page.title}</h3>
-            <p class="font-lora text-red-700 text-lg leading-relaxed max-w-xs">${page.text}</p>
-            <div class="mt-6 flex gap-2">
-              <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <div class="flex-1 flex items-center">
+              <p class="font-lora text-red-700 text-sm md:text-base leading-relaxed text-center w-full">${page.text ?? ""}</p>
             </div>
+            <div class="text-center text-red-300 text-xs font-lora mt-2">✿ ✿ ✿</div>
           </div>
         `;
       }
 
-      return `
-        <div class="h-full flex flex-col p-6 relative">
-          <h3 class="font-dancing text-2xl md:text-3xl text-red-600 text-center mb-4">${page.title}</h3>
-          ${photoHtml}
-          <div class="flex-1 flex items-center">
-            <p class="font-lora text-red-700 text-sm md:text-base leading-relaxed text-center w-full">${page.text}</p>
-          </div>
-          <div class="text-center text-red-300 text-xs font-lora mt-2">✿ ✿ ✿</div>
-        </div>
-      `;
-    }
+      function updatePageIndicator() {
+        const indicator = document.getElementById("pageIndicator");
+        indicator.innerHTML = "";
 
-    function updatePageIndicator() {
-      const indicator = document.getElementById('pageIndicator');
-      indicator.innerHTML = '';
-      
-      for (let i = 0; i <= pagesData.length; i++) {
-        const dot = document.createElement('div');
-        dot.className = `page-dot ${i === currentPage ? 'active' : ''}`;
-        dot.onclick = () => goToPage(i);
-        indicator.appendChild(dot);
-      }
-    }
-
-    function goToPage(pageIndex) {
-      if (pageIndex < 0 || pageIndex > pagesData.length) return;
-      
-      const pages = document.querySelectorAll('.page');
-      
-      if (pageIndex > currentPage) {
-        for (let i = currentPage; i < pageIndex; i++) {
-          if (pages[i]) pages[i].classList.add('flipped');
-        }
-      } else {
-        for (let i = currentPage - 1; i >= pageIndex; i--) {
-          if (pages[i]) pages[i].classList.remove('flipped');
+        for (let i = 0; i <= pagesData.length; i++) {
+          const dot = document.createElement("div");
+          dot.className = `page-dot ${i === currentPage ? "active" : ""}`;
+          dot.onclick = () => goToPage(i);
+          indicator.appendChild(dot);
         }
       }
-      
-      currentPage = pageIndex;
-      updateNavigation();
-      updatePageIndicator();
-    }
 
-    function updateNavigation() {
-      document.getElementById('prevBtn').disabled = currentPage === 0;
-      document.getElementById('nextBtn').disabled = currentPage >= pagesData.length;
-    }
+      function goToPage(pageIndex) {
+        if (pageIndex < 0 || pageIndex > pagesData.length) return;
 
-    function renderPageEditors() {
-      const container = document.getElementById('pageEditors');
-      container.innerHTML = '';
+        const pages = document.querySelectorAll(".page");
 
-      pagesData.forEach((page, index) => {
-        const editor = document.createElement('div');
-        editor.className = 'bg-white rounded-xl p-4 shadow-sm border border-red-100';
-        
-        editor.innerHTML = `
-          <div class="flex items-center justify-between mb-3">
-            <span class="font-playfair text-red-600 font-semibold">Halaman ${index + 1}</span>
-            ${pagesData.length > 2 ? `<button class="text-red-400 hover:text-red-600 text-sm" onclick="deletePage(${page.id})">🗑️ Hapus</button>` : ''}
-          </div>
-          
-          <div class="space-y-3">
-            <div>
-              <label class="font-lora text-red-500 text-xs mb-1 block">Judul</label>
-              <input type="text" value="${page.title}" onchange="updatePageData(${page.id}, 'title', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700">
+        if (pageIndex > currentPage) {
+          for (let i = currentPage; i < pageIndex; i++) {
+            if (pages[i]) pages[i].classList.add("flipped");
+          }
+        } else {
+          for (let i = currentPage - 1; i >= pageIndex; i--) {
+            if (pages[i]) pages[i].classList.remove("flipped");
+          }
+        }
+
+        currentPage = pageIndex;
+        persistSoon();
+        updateNavigation();
+        updatePageIndicator();
+      }
+
+      function updateNavigation() {
+        document.getElementById("prevBtn").disabled = currentPage === 0;
+        document.getElementById("nextBtn").disabled = currentPage >= pagesData.length;
+      }
+
+      function renderPageEditors() {
+        const container = document.getElementById("pageEditors");
+        container.innerHTML = "";
+
+        pagesData.forEach((page, index) => {
+          const editor = document.createElement("div");
+          editor.className = "bg-white rounded-xl p-4 shadow-sm border border-red-100";
+
+          editor.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+              <span class="font-playfair text-red-600 font-semibold">Halaman ${index + 1}</span>
+              ${
+                pagesData.length > 2
+                  ? `<button class="text-red-400 hover:text-red-600 text-sm" onclick="deletePage(${page.id})">🗑️ Hapus</button>`
+                  : ""
+              }
             </div>
-            
-            ${page.type !== 'cover' ? `
-              <div>
-                <label class="font-lora text-red-500 text-xs mb-1 block">Teks / Cerita</label>
-                <textarea onchange="updatePageData(${page.id}, 'text', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700 resize-none" rows="3">${page.text || ''}</textarea>
-              </div>
-            ` : `
-              <div>
-                <label class="font-lora text-red-500 text-xs mb-1 block">Subtitle</label>
-                <input type="text" value="${page.subtitle || ''}" onchange="updatePageData(${page.id}, 'subtitle', this.value)" class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700">
-              </div>
-            `}
-            
-            <div>
-              <label class="font-lora text-red-500 text-xs mb-1 block">Foto</label>
-              <button onclick="selectPhoto(${page.id})" class="w-full px-3 py-2 rounded-lg border border-dashed border-red-200 text-red-400 font-lora text-sm">${page.photo ? '📷 Ganti Foto' : '📷 Upload Foto'}</button>
-            </div>
-          </div>
-        `;
-        
-        container.appendChild(editor);
-      });
-    }
 
-    function updatePageData(pageId, field, value) {
-      const page = pagesData.find(p => p.id === pageId);
-      if (page) {
+            <div class="space-y-3">
+              <div>
+                <label class="font-lora text-red-500 text-xs mb-1 block">Judul</label>
+                <input
+                  type="text"
+                  value="${escapeHtml(page.title)}"
+                  oninput="updatePageData(${page.id}, 'title', this.value)"
+                  class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700"
+                />
+              </div>
+
+              ${
+                page.type !== "cover"
+                  ? `
+                    <div>
+                      <label class="font-lora text-red-500 text-xs mb-1 block">Teks / Cerita</label>
+                      <textarea
+                        oninput="updatePageData(${page.id}, 'text', this.value)"
+                        class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700 resize-none"
+                        rows="3"
+                      >${escapeHtml(page.text || "")}</textarea>
+                    </div>
+                  `
+                  : `
+                    <div>
+                      <label class="font-lora text-red-500 text-xs mb-1 block">Subtitle</label>
+                      <input
+                        type="text"
+                        value="${escapeHtml(page.subtitle || "")}"
+                        oninput="updatePageData(${page.id}, 'subtitle', this.value)"
+                        class="w-full px-3 py-2 rounded-lg border border-red-100 outline-none font-lora text-sm text-red-700"
+                      />
+                    </div>
+                  `
+              }
+
+              <div>
+                <label class="font-lora text-red-500 text-xs mb-1 block">Foto</label>
+                <button
+                  onclick="selectPhoto(${page.id})"
+                  class="w-full px-3 py-2 rounded-lg border border-dashed border-red-200 text-red-400 font-lora text-sm"
+                >${page.photo ? "📷 Ganti Foto" : "📷 Upload Foto"}</button>
+              </div>
+            </div>
+          `;
+
+          container.appendChild(editor);
+        });
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      // IMPORTANT: setiap edit -> render + autosave (biar gak balik kosong)
+      function updatePageData(pageId, field, value) {
+        const page = pagesData.find((p) => p.id === pageId);
+        if (!page) return;
+
         page[field] = value;
+
         renderFlipbook();
+        // biar label tombol foto/judul panel tetap sinkron (tanpa ganggu typing), kita gak rerender editor setiap ketik
+        // tapi autosave jalan.
+        persistSoon();
         showToast();
       }
-    }
 
-    function selectPhoto(pageId) {
-      currentPhotoPageId = pageId;
-      document.getElementById('fileInput').click();
-    }
-
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (file && currentPhotoPageId) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const page = pagesData.find(p => p.id === currentPhotoPageId);
-          if (page) {
-            page.photo = event.target.result;
-            renderFlipbook();
-            renderPageEditors();
-            showToast();
-          }
-        };
-        reader.readAsDataURL(file);
+      function selectPhoto(pageId) {
+        if (!isPasswordUnlocked) {
+          showPasswordPopup();
+          return;
+        }
+        currentPhotoPageId = pageId;
+        document.getElementById("fileInput").click();
       }
-    }
 
-    function addPage() {
-      const newId = Math.max(...pagesData.map(p => p.id)) + 1;
-      pagesData.splice(pagesData.length - 1, 0, { id: newId, type: 'content', title: 'Halaman Baru', text: 'Tulis cerita di sini...', photo: null });
+      function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (file && currentPhotoPageId) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const page = pagesData.find((p) => p.id === currentPhotoPageId);
+            if (page) {
+              page.photo = event.target.result;
+              renderFlipbook();
+              renderPageEditors();
+              persistSoon();
+              showToast();
+            }
+            // reset input supaya bisa upload file yang sama lagi
+            e.target.value = "";
+            currentPhotoPageId = null;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function addPage() {
+        if (!isPasswordUnlocked) {
+          showPasswordPopup();
+          return;
+        }
+        const newId = Math.max(...pagesData.map((p) => p.id)) + 1;
+        pagesData.splice(pagesData.length - 1, 0, {
+          id: newId,
+          type: "content",
+          title: "Halaman Baru",
+          text: "Tulis cerita di sini...",
+          photo: null
+        });
+        renderFlipbook();
+        renderPageEditors();
+        persistSoon();
+        showToast("Halaman baru ditambahkan!♥️");
+      }
+
+      function deletePage(pageId) {
+        if (!isPasswordUnlocked) {
+          showPasswordPopup();
+          return;
+        }
+        if (pagesData.length <= 2) return;
+
+        const index = pagesData.findIndex((p) => p.id === pageId);
+        if (index > -1) {
+          pagesData.splice(index, 1);
+          if (currentPage > pagesData.length) currentPage = pagesData.length;
+
+          renderFlipbook();
+          renderPageEditors();
+          updateNavigation();
+          persistSoon();
+          showToast("Halaman dihapus 💔");
+        }
+      }
+
+      function openEditPanel() {
+        isEditPanelOpen = true;
+        document.getElementById("editPanel").classList.add("open");
+      }
+
+      function closeEditPanel() {
+        isEditPanelOpen = false;
+        isPasswordUnlocked = false; // tiap mau edit lagi => harus password lagi
+        document.getElementById("editPanel").classList.remove("open");
+      }
+
+      function showToast(message = "Perubahan tersimpan! 💕") {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+      }
+
+      // Expose functions for inline onclick
+      window.selectPhoto = selectPhoto;
+      window.updatePageData = updatePageData;
+      window.addPage = addPage;
+      window.deletePage = deletePage;
+      window.goToPage = goToPage;
+
+      /***********************
+       * Initialize
+       ***********************/
       renderFlipbook();
       renderPageEditors();
-      showToast('Halaman baru ditambahkan! 💕');
-    }
+      updateNavigation();
+      persistSoon(); // pastiin state sekarang tersimpan (kalau baru pertama buka)
 
-    function deletePage(pageId) {
-      if (pagesData.length <= 2) return;
-      const index = pagesData.findIndex(p => p.id === pageId);
-      if (index > -1) {
-        pagesData.splice(index, 1);
-        if (currentPage > pagesData.length) currentPage = pagesData.length;
+      document.getElementById("prevBtn").onclick = () => goToPage(currentPage - 1);
+      document.getElementById("nextBtn").onclick = () => goToPage(currentPage + 1);
+
+      document.getElementById("flipbook").addEventListener("click", (e) => {
+        const page = e.target.closest(".page");
+        if (page && !e.target.closest(".photo-placeholder")) {
+          const index = parseInt(page.dataset.index);
+          if (index === currentPage) goToPage(currentPage + 1);
+          else if (index === currentPage - 1) goToPage(currentPage - 1);
+        }
+      });
+
+      document.getElementById("editToggle").onclick = () => {
+        if (!isPasswordUnlocked) showPasswordPopup();
+        else openEditPanel();
+      };
+
+      document.getElementById("closePanel").onclick = closeEditPanel;
+      document.getElementById("addPageBtn").onclick = addPage;
+      document.getElementById("fileInput").onchange = handleFileSelect;
+
+      // optional: CTRL/CMD + SHIFT + R reset data (biar gampang kalau mau balik default)
+      window.addEventListener("keydown", (e) => {
+        const isReset = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "R" || e.key === "r");
+        if (!isReset) return;
+        e.preventDefault();
+        if (!confirm("Reset flipbook ke default? Ini akan hapus semua edit di browser ini.")) return;
+        pagesData = DEFAULT_PAGES.map(p => ({ ...p }));
+        currentPage = 0;
+        persistNow();
         renderFlipbook();
         renderPageEditors();
         updateNavigation();
-        showToast('Halaman dihapus 💔');
-      }
-    }
-
-    function openEditPanel() {
-      isEditPanelOpen = true;
-      document.getElementById('editPanel').classList.add('open');
-    }
-
-    function closeEditPanel() {
-      isEditPanelOpen = false;
-      isPasswordUnlocked = false;
-      document.getElementById('editPanel').classList.remove('open');
-    }
-
-    function showToast(message = 'Perubahan tersimpan! 💕') {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2000);
-    }
-
-    // Initialize
-    renderFlipbook();
-    renderPageEditors();
-    updateNavigation();
-
-    document.getElementById('prevBtn').onclick = () => goToPage(currentPage - 1);
-    document.getElementById('nextBtn').onclick = () => goToPage(currentPage + 1);
-
-    document.getElementById('flipbook').addEventListener('click', (e) => {
-      const page = e.target.closest('.page');
-      if (page && !e.target.closest('.photo-placeholder')) {
-        const index = parseInt(page.dataset.index);
-        if (index === currentPage) goToPage(currentPage + 1);
-        else if (index === currentPage - 1) goToPage(currentPage - 1);
-      }
-    });
-
-    document.getElementById('editToggle').onclick = () => {
-      if (!isPasswordUnlocked) {
-        showPasswordPopup();
-      } else {
-        openEditPanel();
-      }
-    };
-
-    document.getElementById('closePanel').onclick = closeEditPanel;
-    document.getElementById('addPageBtn').onclick = addPage;
-    document.getElementById('fileInput').onchange = handleFileSelect;
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ccb671bf1daf4ec',t:'MTc3MDg5MjE0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+        showToast("Di-reset ke default ✅");
+      });
+    </script>
+  </body>
 </html>
